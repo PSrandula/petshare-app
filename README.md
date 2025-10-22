@@ -1,7 +1,7 @@
-<<<<<<< HEAD
+
 # petshare-app
 AI-generated social media app built using Firebase and Gemini
-=======
+
 # React + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
