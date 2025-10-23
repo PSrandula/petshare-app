@@ -1,16 +1,38 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { auth, database } from '../firebaseConfig';
 import { ref, push, serverTimestamp } from 'firebase/database';
 
+const Notification = ({ message, type, onClose }) => {
+  useEffect(() => {
+    const timer = setTimeout(onClose, 4000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  const baseClasses = "fixed top-5 right-5 p-4 rounded-lg shadow-xl text-white transition-all transform";
+  const typeClasses = type === 'success' 
+    ? 'bg-gradient-to-r from-green-400 to-blue-500' 
+    : 'bg-gradient-to-r from-red-500 to-pink-500';
+
+  return (
+    <div className={`${baseClasses} ${typeClasses} animate-slide-in-down`}>
+      <p className="font-semibold">{type === 'success' ? 'Success!' : 'Error'}</p>
+      <p>{message}</p>
+    </div>
+  );
+};
+
 const CreatePost = () => {
   const [caption, setCaption] = useState('');
   const [image, setImage] = useState(null);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
+  const [notification, setNotification] = useState(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  const showNotification = (message, type) => {
+    setNotification({ message, type });
+  };
 
   const handleImageChange = (e) => {
     if (e.target.files[0]) {
@@ -20,11 +42,10 @@ const CreatePost = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
-    setSuccess(null);
+    setNotification(null);
 
     if (!image) {
-      setError('Please select an image to upload.');
+      showNotification('Please select an image to upload.', 'error');
       return;
     }
 
@@ -40,14 +61,16 @@ const CreatePost = () => {
         body: formData,
       });
 
-      if (!imgbbResponse.ok) {
-        throw new Error('Image upload failed. Please try again.');
-      }
-
       const imgbbResult = await imgbbResponse.json();
-      const imageUrl = imgbbResult.data.url;
+      console.log('ImgBB API Response:', imgbbResult);
 
+      if (!imgbbResponse.ok || !imgbbResult.success) {
+        throw new Error(imgbbResult.error?.message || 'Image upload failed. Please try again.');
+      }
+      
+      const imageUrl = imgbbResult.data.url;
       const user = auth.currentUser;
+      
       if (user) {
         const postsRef = ref(database, 'posts');
         await push(postsRef, {
@@ -57,72 +80,83 @@ const CreatePost = () => {
           createdAt: serverTimestamp(),
         });
 
-        setSuccess('Post created successfully!');
-        setCaption('');
-        setImage(null);
-        if (e.target.reset) {
-          e.target.reset(); 
-        }
+        showNotification('Post created successfully! Redirecting...', 'success');
+        setTimeout(() => {
+          navigate('/feed');
+        }, 1500); // Redirect after 1.5 seconds
       } else {
-        setError('You must be logged in to create a post.');
+        showNotification('You must be logged in to create a post.', 'error');
       }
     } catch (error) {
-      setError(error.message);
+      console.error('Submission Error:', error);
+      showNotification(error.message, 'error');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-lg mx-auto mt-10 px-4">
-        <div className="flex justify-center mb-4">
+    <>
+      {notification && (
+        <Notification
+          message={notification.message}
+          type={notification.type}
+          onClose={() => setNotification(null)}
+        />
+      )}
+      <div className="min-h-screen bg-gray-100 py-10 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-2xl mx-auto">
+          <div className="mb-8">
             <button
               onClick={() => navigate('/feed')}
-              className="px-6 py-2 font-semibold text-white bg-blue-600 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-transform transform hover:scale-105"
+              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-full shadow-lg text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-transform transform hover:scale-105"
             >
               &larr; Back to Feed
             </button>
-        </div>
-        <div className="p-8 bg-white rounded-2xl shadow-xl">
-            <h2 className="text-3xl font-bold mb-6 text-center text-gray-800">Create a New Post</h2>
-            <form onSubmit={handleSubmit} className="space-y-6">
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-2xl p-8">
+            <h2 className="text-4xl font-extrabold text-center text-gray-800 mb-8">
+              Create a New Post
+            </h2>
+            <form onSubmit={handleSubmit} className="space-y-8">
               <div>
-                <label htmlFor="caption" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="caption" className="block text-lg font-medium text-gray-700 mb-2">
                   Caption
                 </label>
                 <textarea
                   id="caption"
                   value={caption}
                   onChange={(e) => setCaption(e.target.value)}
-                  className="w-full px-4 py-2 mt-1 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
-                  placeholder="Write a caption..."
-                  rows="4"
+                  className="w-full px-5 py-4 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow text-lg"
+                  placeholder="Share something adorable..."
+                  rows="5"
                 />
               </div>
               <div>
-                <label htmlFor="image" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="image" className="block text-lg font-medium text-gray-700 mb-2">
                   Image
                 </label>
                 <input
                   type="file"
                   id="image"
                   onChange={handleImageChange}
-                  className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full text-lg text-gray-500 file:mr-5 file:py-3 file:px-6 file:rounded-full file:border-0 file:text-base file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
                   required
                 />
               </div>
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full px-4 py-3 font-semibold text-white bg-indigo-600 rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400 disabled:cursor-not-allowed transition-all duration-300"
+                className="w-full px-6 py-4 font-semibold text-white text-lg bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl shadow-lg hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105"
               >
                 {loading ? 'Uploading...' : 'Create Post'}
               </button>
             </form>
-            {error && <p className="mt-5 text-sm text-center text-red-600 bg-red-100 p-3 rounded-lg">{error}</p>}
-            {success && <p className="mt-5 text-sm text-center text-green-600 bg-green-100 p-3 rounded-lg">{success}</p>}
+          </div>
         </div>
-    </div>
+      </div>
+    </>
   );
 };
 
