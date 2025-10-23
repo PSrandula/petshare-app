@@ -1,53 +1,23 @@
-# Prompt Documentation for PetShare
+# AI Prompt Documentation for PetShare Platform
 
-## 1. Initialize Firebase Project
-**Prompt used:**  
-"Initialize a new Firebase project for a social media app with Email/Password Authentication, Realtime Database, and Hosting."
+## Introduction
 
-**Output:**  
-- Firebase project initialized  
-- Realtime DB created  
-- Auth enabled  
-- Hosting configured
+This document provides a comprehensive log of the prompts used to generate the "PetShare" social media platform with the assistance of an AI code assistant (Gemini in Firebase Studio). The project is built with React and Vite, utilizing Firebase for backend services including Authentication, Realtime Database, and Hosting. Image hosting is handled by the ImgBB API.
+
+This log serves as a reference for the development process, showcasing how targeted AI prompts can accelerate the creation of a full-stack application.
 
 ---
 
-## 2. Authentication Component
-**Prompt used:**  
-"Generate a React functional component for user sign-up and login using Firebase Authentication (v9 modular SDK). Include validation for email and password, and redirect to the main feed after login."
+## Prompt Development Log
 
-**Output:**  
-- `Auth.jsx` component created  
-- Email/password validation included  
-- Successful login redirects
-
----
-
-## 3. Image Upload Component
-**Prompt used:**  
-"Create a React component for uploading images using ImgBB API and saving post metadata to Firebase Realtime Database."
-
-**Output:**  
-- `UploadPost.jsx` component created  
-- Upload functionality working  
-- Posts saved in Realtime DB
-
----
-
-## 4. Main Feed
-**Prompt used:**  
-"Generate a React component that listens to Realtime Database updates and displays all posts chronologically with captions and images."
-
-**Output:**  
-- `Feed.jsx` component created  
-- Live updates working  
-
----
-
-## 5. Deployment
-**Prompt used:**  
-"Deploy the React app to Firebase Hosting with all environment variables configured."
-
-**Output:**  
-- App deployed  
-- Live URL working
+| Step | Description                       | Prompt Summary                                                                                                                                                                                                                                                        | Generated Output                                                                                                                                                                                                   | Commit Message                                            |
+| :--- | :-------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------- |
+| 1.   | **Project Initialization**        | "You are a full-stack Firebase engineer. Create a new React application using Vite. Integrate Firebase SDK v9 and set up Authentication, Realtime Database, and Hosting. Generate a standard folder structure (`/pages`, `/components`)."                 | Initial project scaffold with Vite, `firebaseConfig.js`, environment variable setup, and the specified directory structure.                                                                                    | `feat: initialize React project with Firebase and Vite`   |
+| 2.   | **Authentication Page**           | "Create a beautiful, fully functional `AuthPage.jsx` using React and Tailwind CSS. Include Sign Up/Login modes. On sign-up, save the user's full name and email to the Realtime Database under `/users/{uid}`. Redirect to `/feed` on success."         | A complete `AuthPage.jsx` component with form logic, Firebase Auth integration, user data storage in RTDB, and toast notifications for feedback.                                                              | `feat: create user authentication page with signup and login` |
+| 3.   | **Create Post Page**              | "Create a `CreatePost.jsx` page. Allow authenticated users to upload an image to the ImgBB API and add a caption. Save the `imageUrl`, `caption`, `userId`, and `createdAt` timestamp to the Firebase Realtime Database."                                 | A functional `CreatePost.jsx` component with a form for image and caption submission, handling the ImgBB API call and saving post data to Firebase.                                                               | `feat: implement create post page with image upload`      |
+| 4.   | **Feed Page Generation**          | "Generate a `Feed.jsx` component that listens to the `/posts` node in Realtime Database. Display all posts in reverse chronological order. Each post should show the image, caption, time since creation, and the creator's full name from the `/users` node." | A `Feed.jsx` component that fetches and displays all posts in real-time, including logic to map `userId` to a full name for display.                                                                               | `feat: create feed page to display posts in real-time`    |
+| 5.   | **UI/UX Enhancement for Feed**    | "Enhance the `Feed.jsx` UI. Add a sticky gradient navbar with user info and navigation. Display posts as modern cards with hover effects and a responsive grid. Add a styled empty state for when there are no posts."                                   | Refactored `Feed.jsx` with a new header, improved post card styling using Tailwind CSS, fade-in animations, and a responsive multi-column grid.                                                                   | `style: enhance feed page UI with modern design`          |
+| 6.   | **Delete Confirmation Modal**     | "Update `Feed.jsx` to include a 3-dot menu on each post for authorized users. On delete, show a modern confirmation modal with a blurred background overlay before removing the post. Use Tailwind CSS only."                                            | Added a dropdown menu to post cards and a reusable `ConfirmationModal` component within `Feed.jsx`. The modal is fully styled with Tailwind and includes smooth animations.                                         | `feat: add delete functionality with confirmation modal`  |
+| 7.   | **Database Security Rules**       | "You are a Firebase security expert. Provide Realtime Database rules that allow public read for `/posts` but write access only for authenticated users. Users can only write to their own profile in `/users/{uid}`."                               | A JSON rules document with secure configurations for the `/posts` and `/users` nodes, ready to be deployed to the Firebase project.                                                                              | `sec: configure firebase realtime database security rules`|
+| 8.   | **Redirect After Post**           | "Update the `CreatePost.jsx` component so that after a successful post, the user is automatically redirected to the `/feed` page after a 1.5-second delay to allow them to read the success notification."                                             | Added a `setTimeout` function within the submission logic in `CreatePost.jsx` to navigate the user to the feed after a post is successfully created.                                                               | `feat: redirect to feed after successful post creation`   |
+| 9.   | **Final Styling & Deployment**    | "Review the entire application for styling consistency and responsiveness. Prepare the project for deployment to Firebase Hosting and provide the necessary commands."                                                                                     | Minor styling adjustments across components for a cohesive look and feel. Provided the `firebase deploy` command and confirmed build configurations.                                                               | `chore: final styling and prep for deployment`            |
